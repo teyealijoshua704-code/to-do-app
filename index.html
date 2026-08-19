@@ -2,32 +2,117 @@
 <html>
 <head>
  <title><My to do list</title>
- <style>
- body{font-family: Arial, sans-serif; background-color:#f0f4f8; text-align:center; margin-top:50px;}
- input{padding: 8px;width: 200px;}
- button{padding:8px 12px;}
- li{list-style: none; margin: 10px; font-size:18px;}.done {
-  text-decoration: line-through;
-  color: gray;
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+  body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-image: url(https://thumbs.dreamstime.com/b/rear-orange-dodge-challenger-american-supercar-brno-czech-republic-december-red-parked-parking-lot-fast-luxury-302490571.jpg);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  text-align: center;
+  margin-top: 50px;
+  }
+
+  h1 {
+    color: #2f5496;
+  }
+
+  input {
+    padding: 10px;
+    width: 220px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+
+  button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    background-color: #2f5496;
+    color: white;
+    cursor: pointer;
+    margin-left: 6px;
+  }
+
+  button:hover {
+    background-color: #1e3a6e;
+  }
+
+  ol {max-width: 350px;
+  margin: 30px auto;
+  padding: 0;
+  text-align: left;
+  counter-reset: taskCounter;}
+  li {
+    background-color: white;
+    padding: 12px 15px;
+    margin: 8px 0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;counter-increment: taskCounter;
+  }li::before {
+  content: counter(taskCounter) ". ";
+  font-weight: bold;
+  margin-right: 8px;
 }
- </style>
+
+  li.done {
+    text-decoration: line-through;
+    color: gray;
+    background-color: #f5f5f5;
+  }
+
+  li button {
+    background-color: #d9534f;
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  li button:hover {
+    background-color: #b52b27;
+  }
+</style>
 </head>
 <body>
  <h1>My To-Do List</h1>
  <input type="text" id="taskInput" placeholder="Enter a task">
  <button onclick="addTask()">AddTask</button>
- <ul id="taskList"></ul>
+ <ol id="taskList"></ol>
  <script>
-  function addTask(){
-    const input = document.getElementById("taskInput");
-    const taskText = input.value;
-    if (taskText === "") { return; }
+  // Load saved tasks when the page opens
+  window.onload = function() {
+    const savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    savedTasks.forEach(task => {
+      createTaskElement(task.text, task.done);
+    });
+  };
 
+  function saveTasks() {
+    const tasks = [];
+    document.querySelectorAll("#taskList li").forEach(li => {
+      tasks.push({
+        text: li.firstChild.textContent,
+        done: li.classList.contains("done")
+      });
+    });
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+
+  function createTaskElement(text, done) {
     const li = document.createElement("li");
-    li.textContent = taskText;
+    li.textContent = text;
+
+    if (done) {
+      li.classList.add("done");
+    }
 
     li.onclick = function() {
       li.classList.toggle("done");
+      saveTasks();
     };
 
     const deleteBtn = document.createElement("button");
@@ -35,10 +120,20 @@
     deleteBtn.onclick = function(event) {
       event.stopPropagation();
       li.remove();
+      saveTasks();
     };
 
     li.appendChild(deleteBtn);
     document.getElementById("taskList").appendChild(li);
+  }
+
+  function addTask() {
+    const input = document.getElementById("taskInput");
+    const taskText = input.value;
+    if (taskText === "") { return; }
+
+    createTaskElement(taskText, false);
+    saveTasks();
 
     input.value = "";
   }
